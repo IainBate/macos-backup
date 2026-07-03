@@ -1,0 +1,3 @@
+{
+    IsMixmojiSuggestionsEnabled = 0;
+}

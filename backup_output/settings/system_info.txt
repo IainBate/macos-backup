@@ -1,0 +1,15 @@
+=== System Info ===
+Date: Fri  3 Jul 2026 10:42:56 BST
+Hostname: UOY26M104
+Model: MacBook Pro
+Chip: Apple M1 Pro
+RAM: 16 GB
+macOS: 26.5.2
+Build: 25F84
+
+=== Disk Usage ===
+Filesystem        Size    Used   Avail Capacity iused ifree %iused  Mounted on
+/dev/disk3s1s1   926Gi    12Gi   406Gi     3%    459k  4.3G    0%   /
+
+=== Current User ===
+iain
