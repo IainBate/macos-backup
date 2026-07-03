@@ -16,5 +16,3 @@ __pycache__/
 *.swp
 *~
 
-# Nested git repo (backup output)
-backup_output/

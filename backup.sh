@@ -6,7 +6,7 @@
 # Chrome data, and system state to ./backup_output/, then pushes to git.
 #
 # Usage: zsh backup.sh
-# Output: ./backup_output/ (pushed to git@github.com:IainBate/backup_and_restore.git)
+# Output: ./backup_output/ (pushed to git@github.com:IainBate/macos-backup.git)
 # ============================================================================
 
 set -e
@@ -63,10 +63,9 @@ else
 fi
 
 if [ -n "$KEYCHAIN_SRC" ]; then
-    log "  ⚠ macOS will prompt you to authorize the keychain export. Enter your login password."
-    security export -k "$KEYCHAIN_SRC" -o "$BACKUP_DIR/keychain/keychain_backup.keychain" \
-        -t all -r all 2>/dev/null && \
-        log "  ✓ Keychain exported" || log "  ⚠ Keychain export failed (may require manual authorization)"
+    log "  Copying login keychain to backup..."
+    cp -p "$KEYCHAIN_SRC" "$BACKUP_DIR/keychain/keychain_backup.keychain-db" && \
+        log "  ✓ Keychain exported" || log "  ⚠ Keychain export failed"
 fi
 
 # ============================================================================
@@ -217,21 +216,13 @@ log "📊 Capturing system info..."
 } > "$BACKUP_DIR/settings/system_info.txt"
 
 # ============================================================================
-# 8. Push to Git
+# 8. Commit backup files to parent repo
 # ============================================================================
-log "📤 Pushing to git..."
+log "📤 Committing to git..."
 
-cd "$BACKUP_DIR"
+cd "$SCRIPT_DIR"
 
-if [ ! -d ".git" ]; then
-    log "  Initializing new git repository..."
-    git init
-    git branch -M main
-    git remote add origin git@github.com:IainBate/backup_and_restore.git
-    log "  ✓ Git remote set to git@github.com:IainBate/backup_and_restore.git"
-fi
-
-git add .
+git add backup_output/
 git diff --cached --quiet || \
     git commit -m "Backup capture: $(date +'%Y-%m-%d %H:%M:%S')" || \
     log "  ⚠ No changes to commit"
@@ -248,5 +239,5 @@ log "✅ Backup complete!"
 log ""
 log "Files saved to: $BACKUP_DIR"
 log "To restore on your new Mac, run:"
-log "  git clone git@github.com:IainBate/backup_and_restore.git ~/backup_and_restore"
-log "  cd ~/backup_and_restore && zsh restore.sh"
+log "  git clone git@github.com:IainBate/macos-backup.git ~/macos-backup"
+log "  cd ~/macos-backup && zsh restore.sh"

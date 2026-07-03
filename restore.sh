@@ -81,7 +81,7 @@ REQUIRED_FILES=(
     "settings/npm_global_packages.txt"
     "settings/vscode_settings.json"
     "models/ollama_models.txt"
-    "keychain/keychain_backup.keychain"
+    "keychain/keychain_backup.keychain-db"
 )
 
 MISSING=0
@@ -96,6 +96,24 @@ if [ "$MISSING" -gt 3 ]; then
     log "  ⚠ $MISSING backup files are missing. Some restore steps may be incomplete."
 else
     log "  ✓ Backup files verified ($MISSING missing)"
+fi
+
+# ============================================================================
+# 2b. Claude API Key (required for Claude Code integration)
+# ============================================================================
+log "🔑 Entering Claude API key..."
+
+if [ -z "${CLAUDE_API_KEY}" ]; then
+    read -rs -p "Paste your Claude API key (will not be shown): " CLAUDE_API_KEY
+    echo ""
+    if [ -z "${CLAUDE_API_KEY}" ]; then
+        log "  ⚠ No API key provided. Claude Code integration will not work."
+        log "  Set it later with: export CLAUDE_API_KEY='sk-ant-...'"
+    else
+        log "  ✓ API key received (not displayed for security)"
+    fi
+else
+    log "  ✓ API key already set in environment"
 fi
 
 # ============================================================================
@@ -353,7 +371,7 @@ cat > "$HOME/bin/run_claude_local" << 'CLAUDE_LOCAL_SCRIPT'
 
 export ANTHROPIC_BASE_URL="${ANTHROPIC_BASE_URL:-http://localhost:11434}"
 export ANTHROPIC_AUTH_TOKEN="${ANTHROPIC_AUTH_TOKEN:-ollama}"
-export CLAUDE_API_KEY="${CLAUDE_API_KEY:-<REDACTED_API_KEY>}"
+export CLAUDE_API_KEY="${CLAUDE_API_KEY:-${CLAUDE_API_KEY:-<REDACTED_API_KEY>}}"
 
 # Start Ollama if not running
 if ! lsof -i :11434 &>/dev/null; then
@@ -380,7 +398,7 @@ cat > "$HOME/bin/run_claude_server" << 'CLAUDE_SERVER_SCRIPT'
 
 export ANTHROPIC_BASE_URL="http://localhost:1234"
 export ANTHROPIC_AUTH_TOKEN="lmstudio"
-export CLAUDE_API_KEY="${CLAUDE_API_KEY:-<REDACTED_API_KEY>}"
+export CLAUDE_API_KEY="${CLAUDE_API_KEY:-${CLAUDE_API_KEY:-<REDACTED_API_KEY>}}"
 export ANTHROPIC_DEFAULT_HAIKU_MODEL="qwen/qwen3.6-35b-a3b"
 export ANTHROPIC_DEFAULT_OPUS_MODEL="qwen/qwen3.6-35b-a3b"
 export ANTHROPIC_DEFAULT_SONNET_MODEL="qwen/qwen3.6-35b-a3b"
@@ -397,7 +415,14 @@ log "  ✓ ~/bin/run_claude_server created (remote lmstudio)"
 # ============================================================================
 log "🔐 Restoring keychain..."
 
-if [ -f "$RESTORE_DIR/keychain/keychain_backup.keychain" ]; then
+if [ -f "$RESTORE_DIR/keychain/keychain_backup.keychain-db" ]; then
+    log "  Copying keychain backup back to Keychain folder..."
+    KEYCHAIN_DEST="$HOME/Library/Keychains/login.keychain-db"
+    mkdir -p "$HOME/Library/Keychains"
+    cp -p "$RESTORE_DIR/keychain/keychain_backup.keychain-db" "$KEYCHAIN_DEST" 2>/dev/null && \
+        log "  ✓ Keychain restored (may need to unlock in Keychain Access)" || \
+        log "  ⚠ Keychain restore failed"
+elif [ -f "$RESTORE_DIR/keychain/keychain_backup.keychain" ]; then
     log "  ⚠ macOS will prompt you to authorize the keychain import. Enter your login password."
     security import "$RESTORE_DIR/keychain/keychain_backup.keychain" \
         -T /usr/bin/security 2>/dev/null && \
@@ -457,7 +482,7 @@ export PATH="$HOME/bin:/opt/homebrew/bin:$PATH"
 # Claude API Key (env var override supported)
 append_if_missing "CLAUDE_API_KEY" '
 # Claude API key — override with: export CLAUDE_API_KEY="your-key"
-export CLAUDE_API_KEY="${CLAUDE_API_KEY:-<REDACTED_API_KEY>}"
+export CLAUDE_API_KEY="${CLAUDE_API_KEY:-${CLAUDE_API_KEY:-<REDACTED_API_KEY>}}"
 '
 
 # Claude / Ollama environment
