@@ -1,0 +1,3 @@
+Error obtaining wireless information.
+is not a Wi-Fi interface.
+You are not associated with an AirPort network.

@@ -1,0 +1,284 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2870
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fnil\fcharset0 HelveticaNeue;\f1\fnil\fcharset0 HelveticaNeue-Bold;\f2\fnil\fcharset0 Menlo-Regular;
+\f3\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+{\*\listtable{\list\listtemplateid1\listhybrid{\listlevel\levelnfc0\levelnfcn0\leveljc0\leveljcn0\levelfollow0\levelstartat1\levelspace360\levelindent0{\*\levelmarker \{decimal\}.}{\leveltext\leveltemplateid1\'02\'00.;}{\levelnumbers\'01;}\fi-360\li720\lin720 }{\listlevel\levelnfc23\levelnfcn23\leveljc0\leveljcn0\levelfollow0\levelstartat1\levelspace360\levelindent0{\*\levelmarker \{disc\}}{\leveltext\leveltemplateid2\'01\uc0\u8226 ;}{\levelnumbers;}\fi-360\li1440\lin1440 }{\listlevel\levelnfc23\levelnfcn23\leveljc0\leveljcn0\levelfollow0\levelstartat1\levelspace360\levelindent0{\*\levelmarker \{disc\}}{\leveltext\leveltemplateid3\'01\uc0\u8226 ;}{\levelnumbers;}\fi-360\li2160\lin2160 }{\listlevel\levelnfc23\levelnfcn23\leveljc0\leveljcn0\levelfollow0\levelstartat1\levelspace360\levelindent0{\*\levelmarker \{disc\}}{\leveltext\leveltemplateid4\'01\uc0\u8226 ;}{\levelnumbers;}\fi-360\li2880\lin2880 }{\listname ;}\listid1}}
+{\*\listoverridetable{\listoverride\listid1\listoverridecount0\ls1}}
+\paperw11900\paperh16840\margl1440\margr1440\vieww23840\viewh15800\viewkind0
+\deftab560
+\pard\tx720\pardeftab560\pardirnatural\partightenfactor0
+
+\f0\fs26 \cf0 I want some software to restore key files, application configurations, determine the bespoke software installed when I move to my new Mac Book Air with a M5 processor, 32 GB of memory and 1TB of storage. Most of my own files are stored in Google Drive so they don\'92t need backing up. Can you produce a script that backs up important information and then restores them on a new computer? I want the following to be done as a minimum but please prompt me with ideas of what else would be useful. Write any files needed in the folder /Users/iain/restore_osx not in /mnt. There are two early versions of command-line scripts backup.sh and restore.sh. You could start again from these but you could also start again with a new command line version or python scripts.\
+\pard\pardeftab560\pardirnatural\partightenfactor0
+\ls1\ilvl0\cf0 {\listtext	1.	}
+\f1\b Storage of files\
+\pard\pardeftab560\pardirnatural\partightenfactor0
+\ls1\ilvl1
+\f2\b0\fs18 \cf0 {\listtext	\uc0\u8226 	}
+\f0\fs26 The new machine will have no files on it so all files needed, all backups etc should be stored in git\
+\ls1\ilvl1
+\f2\fs18 {\listtext	\uc0\u8226 	}
+\f0\fs26 I have a git repository that you can use at git@github.com:IainBate/restore_osx.git\
+\ls1\ilvl1
+\f2\fs18 {\listtext	\uc0\u8226 	}
+\f0\fs26 The command to start pulling the files from git and then running everything should be as simple as possible\
+\pard\pardeftab560\pardirnatural\partightenfactor0
+\ls1\ilvl1
+\f1\b \cf0 {\listtext	\uc0\u8226 	}
+\f0\b0 Most passwords needed are stored in Google Chrome so they need to be available
+\f1\b \
+\pard\pardeftab560\pardirnatural\partightenfactor0
+\ls1\ilvl0
+\f0\b0 \cf0 {\listtext	2.	}
+\f1\b Hardware & System Optimization
+\f0\b0 \
+\pard\pardeftab560\pardirnatural\partightenfactor0
+\ls1\ilvl1
+\f2\fs18 \cf0 {\listtext	\uc0\u8226 	}
+\f0\fs26 Enable 
+\f1\b unified memory management
+\f0\b0  for M5 (32GB RAM):\
+\pard\pardeftab560\pardirnatural\partightenfactor0
+\ls1\ilvl2
+\f2\fs18 \cf0 {\listtext	\uc0\u8226 	}
+\f0\fs26 Set "Power" to "High Performance" in 
+\f1\b System Settings > Battery > Power
+\f0\b0 .\
+\ls1\ilvl2
+\f2\fs18 {\listtext	\uc0\u8226 	}
+\f0\fs26 Disable background apps (iCloud, Handoff) via 
+\f1\b Activity Monitor > Memory tab
+\f0\b0 .\
+\pard\pardeftab560\pardirnatural\partightenfactor0
+\ls1\ilvl1
+\f2\fs18 \cf0 {\listtext	\uc0\u8226 	}
+\f0\fs26 Update firmware/drivers via 
+\f1\b System Settings > General > Software Update
+\f0\b0 .\
+\ls1\ilvl1
+\f2\fs18 {\listtext	\uc0\u8226 	}
+\f0\fs26 Install Xcode command-line tools: xcode-select --install and accept license.\
+\pard\pardeftab560\pardirnatural\partightenfactor0
+\ls1\ilvl0\cf0 {\listtext	3.	}
+\f1\b macOS Settings & Backup
+\f0\b0 \
+\pard\pardeftab560\pardirnatural\partightenfactor0
+\ls1\ilvl1
+\f2\fs18 \cf0 {\listtext	\uc0\u8226 	}
+\f1\b\fs26 Privacy/Security
+\f0\b0 :\
+\pard\pardeftab560\pardirnatural\partightenfactor0
+\ls1\ilvl2
+\f2\fs18 \cf0 {\listtext	\uc0\u8226 	}
+\f0\fs26 Enable 
+\f1\b FileVault
+\f0\b0  for full-disk encryption.\
+\ls1\ilvl2
+\f2\fs18 {\listtext	\uc0\u8226 	}
+\f0\fs26 Export 
+\f1\b Apple ID settings
+\f0\b0  and 
+\f1\b keychain
+\f0\b0  (encrypted).\
+\pard\pardeftab560\pardirnatural\partightenfactor0
+\ls1\ilvl1
+\f2\fs18 \cf0 {\listtext	\uc0\u8226 	}
+\f1\b\fs26 User Preferences
+\f0\b0 :\
+\pard\pardeftab560\pardirnatural\partightenfactor0
+\ls1\ilvl2
+\f2\fs18 \cf0 {\listtext	\uc0\u8226 	}
+\f0\fs26 Export:\
+\pard\pardeftab560\pardirnatural\partightenfactor0
+\ls1\ilvl3
+\f2\fs18 \cf0 {\listtext	\uc0\u8226 	}
+\f0\fs26 defaults export com.apple.finder ~/Finder.plist\
+\ls1\ilvl3
+\f2\fs18 {\listtext	\uc0\u8226 	}
+\f0\fs26 defaults export com.apple.dock ~/Dock.plist\
+\ls1\ilvl3
+\f2\fs18 {\listtext	\uc0\u8226 	}
+\f0\fs26 defaults export com.apple.mail ~/Mail.plist\
+\pard\pardeftab560\pardirnatural\partightenfactor0
+\ls1\ilvl2
+\f2\fs18 \cf0 {\listtext	\uc0\u8226 	}
+\f0\fs26 Save 
+\f1\b Wi-Fi passwords
+\f0\b0  via: security find-generic-password -a "YourName" -s "Wi-Fi Network Name".\
+\pard\pardeftab560\pardirnatural\partightenfactor0
+\ls1\ilvl1
+\f2\fs18 \cf0 {\listtext	\uc0\u8226 	}
+\f1\b\fs26 Network/Location
+\f0\b0 :\
+\pard\pardeftab560\pardirnatural\partightenfactor0
+\ls1\ilvl2
+\f2\fs18 \cf0 {\listtext	\uc0\u8226 	}
+\f0\fs26 Export 
+\f1\b location services
+\f0\b0  settings from 
+\f1\b System Settings > Privacy > Location Services
+\f0\b0 .\
+\pard\pardeftab560\pardirnatural\partightenfactor0
+\ls1\ilvl0\cf0 {\listtext	4.	}
+\f1\b App Store & Cloud Sync
+\f0\b0 \
+\pard\pardeftab560\pardirnatural\partightenfactor0
+\ls1\ilvl1
+\f2\fs18 \cf0 {\listtext	\uc0\u8226 	}
+\f0\fs26 Install apps: 
+\f1\b Google Drive
+\f0\b0 , 
+\f1\b Dropbox
+\f0\b0 , 
+\f1\b Global Protect
+\f0\b0 , 
+\f1\b VNC Viewer
+\f0\b0 , 
+\f1\b Alfred
+\f0\b0 , 
+\f1\b Spark
+\f0\b0 , 
+\f1\b Transmit
+\f0\b0 , 
+\f1\b VS Code
+\f0\b0 , 
+\f1\b iStat Menus
+\f0\b0 , 
+\f1\b DaisyDisk
+\f0\b0 , 
+\f1\b Console.app
+\f0\b0 , 
+\f1\b Disk Utility
+\f0\b0 , 
+\f1\b Notion
+\f0\b0 , 
+\f1\b Obsidian
+\f0\b0 .\
+\ls1\ilvl1
+\f2\fs18 {\listtext	\uc0\u8226 	}
+\f0\fs26 Sync accounts via GUI prompts (e.g., Google Drive with University of York account).\
+\pard\pardeftab560\pardirnatural\partightenfactor0
+\ls1\ilvl0\cf0 {\listtext	5.	}
+\f1\b Development & AI Setup
+\f0\b0 \
+\pard\pardeftab560\pardirnatural\partightenfactor0
+\ls1\ilvl1
+\f2\fs18 \cf0 {\listtext	\uc0\u8226 	}
+\f1\b\fs26 Python/Node.js
+\f0\b0 :\
+\pard\pardeftab560\pardirnatural\partightenfactor0
+\ls1\ilvl2
+\f2\fs18 \cf0 {\listtext	\uc0\u8226 	}
+\f0\fs26 Install latest Python (via Homebrew): brew install python.\
+\ls1\ilvl2
+\f2\fs18 {\listtext	\uc0\u8226 	}
+\f0\fs26 Install Node.js: brew install node.\
+{\listtext	\uc0\u8226 	}Install and configure a virtual environment using pyenv\
+\pard\pardeftab560\pardirnatural\partightenfactor0
+\ls1\ilvl1
+\f2\fs18 \cf0 {\listtext	\uc0\u8226 	}
+\f1\b\fs26 Ollama
+\f0\b0 :
+\f3 \
+\pard\tx1660\tx2160\pardeftab560\li2160\fi-2160\pardirnatural\partightenfactor0
+\ls1\ilvl2\cf0 {\listtext	\uc0\u8226 	}Install ollama, webui and llm studio\
+\pard\pardeftab560\pardirnatural\partightenfactor0
+\ls1\ilvl2\cf0 {\listtext	\uc0\u8226 	}Configure ollama to work with Web UI and LLM studio\
+{\listtext	\uc0\u8226 	}Instead and make default \expnd0\expndtw0\kerning0
+Qwen 3.6 35B-A3B with a context of 64k\kerning1\expnd0\expndtw0 \
+{\listtext	\uc0\u8226 	}Optimise for Apple M5 architecture using mlx\
+{\listtext	\uc0\u8226 	}Create or update the script in ~/bin/run_claude to run claude using the model.\
+{\listtext	\uc0\u8226 	}Set any environ
+\f0 ment variables appropriately in ~/.zshrc.\
+\pard\pardeftab560\pardirnatural\partightenfactor0
+\ls1\ilvl1
+\f2\fs18 \cf0 {\listtext	\uc0\u8226 	}
+\f1\b\fs26 Claude Integration
+\f0\b0 :\
+\pard\pardeftab560\pardirnatural\partightenfactor0
+\ls1\ilvl2
+\f2\fs18 \cf0 {\listtext	\uc0\u8226 	}
+\f0\fs26 Set API key: export CLAUDE_API_KEY="<REDACTED_API_KEY>"  \
+\ls1\ilvl2
+\f2\fs18 {\listtext	\uc0\u8226 	}
+\f0\fs26 Configure Claude to use Ollama locally (no internet required).\
+\pard\pardeftab560\pardirnatural\partightenfactor0
+\ls1\ilvl0\cf0 {\listtext	7.	}
+\f1\b Backup & Recovery
+\f0\b0 \
+\pard\pardeftab560\pardirnatural\partightenfactor0
+\ls1\ilvl1
+\f2\fs18 \cf0 {\listtext	\uc0\u8226 	}
+\f0\fs26 Save:\
+\pard\pardeftab560\pardirnatural\partightenfactor0
+\ls1\ilvl2
+\f2\fs18 \cf0 {\listtext	\uc0\u8226 	}
+\f0\fs26 Keychain: security export -k ~/Library/Keychains/login.keychain.d -o ~/restore_osx/keychain_backup.keychain.\
+\ls1\ilvl2
+\f2\fs18 {\listtext	\uc0\u8226 	}
+\f0\fs26 Apple Mail: defaults export com.apple.mail ~/restore_osx/Mail.plist.\
+\ls1\ilvl2
+\f2\fs18 {\listtext	\uc0\u8226 	}
+\f1\b\fs26 iCloud Drive
+\f0\b0  settings for documents, photos, and sync preferences.\
+\pard\pardeftab560\pardirnatural\partightenfactor0
+\ls1\ilvl0\cf0 {\listtext	8.	}
+\f1\b Performance Monitoring
+\f0\b0 \
+\pard\pardeftab560\pardirnatural\partightenfactor0
+\ls1\ilvl1
+\f2\fs18 \cf0 {\listtext	\uc0\u8226 	}
+\f0\fs26 Install 
+\f1\b iStat Menus
+\f0\b0  for real-time GPU/CPU monitoring.\
+\ls1\ilvl1
+\f2\fs18 {\listtext	\uc0\u8226 	}
+\f0\fs26 Use 
+\f1\b DaisyDisk
+\f0\b0  for disk usage analysis.\
+\ls1\ilvl1
+\f2\fs18 {\listtext	\uc0\u8226 	}
+\f0\fs26 Configure 
+\f1\b Activity Monitor
+\f0\b0  to track Ollama model memory usage.\
+\pard\pardeftab560\pardirnatural\partightenfactor0
+\ls1\ilvl0\cf0 {\listtext	9.	}
+\f1\b Custom Scripts & Automation
+\f0\b0 \
+\pard\pardeftab560\pardirnatural\partightenfactor0
+\ls1\ilvl1
+\f2\fs18 \cf0 {\listtext	\uc0\u8226 	}
+\f0\fs26 Automate app installations: brew install --cask google-drive  \
+\ls1\ilvl1
+\f2\fs18 {\listtext	\uc0\u8226 	}
+\f0\fs26 brew install --cask dropbox  \
+\ls1\ilvl1
+\f2\fs18 {\listtext	\uc0\u8226 	}
+\f0\fs26 brew install --cask vnc-viewer  \
+\ls1\ilvl1
+\f2\fs18 {\listtext	\uc0\u8226 	}
+\f0\fs26 Export/import settings: defaults import com.apple.finder ~/restore_osx/Finder.plist  \
+\ls1\ilvl1
+\f2\fs18 {\listtext	\uc0\u8226 	}
+\f0\fs26 defaults import com.apple.dock ~/restore_osx/Dock.plist  \
+\pard\pardeftab560\pardirnatural\partightenfactor0
+\ls1\ilvl0\cf0 {\listtext	10.	}
+\f1\b Final Steps
+\f0\b0 \
+\pard\pardeftab560\pardirnatural\partightenfactor0
+\ls1\ilvl1
+\f2\fs18 \cf0 {\listtext	\uc0\u8226 	}
+\f0\fs26 Transfer 
+\f1\b user data
+\f0\b0  (calendar, contacts, passwords) via iCloud or AirDrop.\
+\pard\pardeftab560\partightenfactor0
+
+\f2\fs18 \cf0 	\'95		\'95	
+\f0\fs26 Customize 
+\f1\b desktop, Dock, and wallpaper
+\f0\b0  in 
+\f1\b System Settings > Desktop & Screen Saver
+\f0\b0 .
+\fs30\fsmilli15167 \
+}

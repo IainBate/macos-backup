@@ -1,0 +1,6 @@
+drawio 30.0.4
+gdisk 1.0.10
+macfuse 5.2.0
+meld 3.22.3+105
+rar 7.22
+xquartz 2.8.5

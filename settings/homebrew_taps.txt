@@ -1,0 +1,3 @@
+amiaopensource/amiaos
+homebrew-ffmpeg/ffmpeg
+sidneys/homebrew

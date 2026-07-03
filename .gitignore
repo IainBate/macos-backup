@@ -1,0 +1,20 @@
+# Sensitive files
+keychain/*.keychain
+
+# macOS artifacts
+.DS_Store
+
+# Logs
+*.log
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Temporary files
+*.tmp
+*.swp
+*~
+
+# Nested git repo (backup output)
+backup_output/

@@ -1,0 +1,33 @@
+=== /Applications ===
+Adobe Acrobat DC
+Amphetamine.app
+Claude.app
+draw.io.app
+Dropbox.app
+Falcon.app
+Firefox.app
+GlobalProtect.app
+Google Chrome.app
+Google Docs.app
+Google Drive.app
+Google Sheets.app
+Google Slides.app
+Jamf Connect.app
+Meld.app
+Microsoft Excel.app
+Microsoft PowerPoint.app
+Microsoft Teams.app
+Microsoft Word.app
+MusicBrainz Picard.app
+Ollama.app
+Raspberry Pi Imager.app
+Safari.app
+Self Service.app
+Slack.app
+Utilities
+VNC Viewer.app
+WeChat.app
+WhatsApp.app
+zoom.us.app
+=== ~/Applications ===
+Claude Code URL Handler.app
