@@ -1,5 +1,5 @@
 === System Info ===
-Date: Sun  5 Jul 2026 18:35:23 BST
+Date: Sun  5 Jul 2026 18:51:21 BST
 Hostname: UOY26M104
 Model: MacBook Pro
 Chip: Apple M1 Pro
@@ -9,7 +9,7 @@ Build: 25F84
 
 === Disk Usage ===
 Filesystem        Size    Used   Avail Capacity iused ifree %iused  Mounted on
-/dev/disk3s1s1   926Gi    12Gi   383Gi     3%    459k  4.0G    0%   /
+/dev/disk3s1s1   926Gi    12Gi   393Gi     3%    459k  4.1G    0%   /
 
 === Current User ===
 iain
