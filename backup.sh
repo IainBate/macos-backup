@@ -153,6 +153,21 @@ else
     log "  ⚠ Ollama not installed"
 fi
 
+# MLX models
+MLX_MODELS_DIR="$HOME/.mlx/models/mlx-community"
+if [ -d "$MLX_MODELS_DIR" ]; then
+    mkdir -p "$BACKUP_DIR/models/mlx_models"
+    # List all MLX models with sizes
+    find "$MLX_MODELS_DIR" -name '*.safetensors' -exec du -sh {} \; 2>/dev/null > "$BACKUP_DIR/models/mlx_models.txt" || true
+    # Save manifest
+    find "$MLX_MODELS_DIR" -maxdepth 2 -type d -name '*' 2>/dev/null | while read -r d; do
+        echo "$d" | sed "s|$MLX_MODELS_DIR/||"
+    done > "$BACKUP_DIR/models/mlx_models_manifest.txt" 2>/dev/null || true
+    log "  ✓ MLX models captured ($(wc -l < "$BACKUP_DIR/models/mlx_models_manifest.txt" 2>/dev/null || echo 0) models)"
+else
+    log "  ⚠ No MLX models found at $MLX_MODELS_DIR"
+fi
+
 # pmset settings
 pmset -g custom > "$BACKUP_DIR/settings/pmset.txt" 2>/dev/null || true
 

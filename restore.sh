@@ -4,7 +4,7 @@
 # ============================================================================
 # Fetches backup from ./backup_output/ (subfolder of the current working directory),
 # installs Homebrew/Xcode/ apps, sets up Python,
-# Node.js, Ollama (Qwen 3.6 35B-A3B), Claude integration, restores
+# Node.js, Ollama (Qwen 3.5 27B), Claude integration, restores
 # keychain and preferences, configures ~/.zshrc, applies system optimizations.
 #
 # Usage: zsh restore.sh
@@ -235,6 +235,8 @@ CASKS=(
     daisydisk
     notion
     obsidian
+    open-webui
+    lm-studio
 )
 
 INSTALLED=0
@@ -326,7 +328,7 @@ if [ -f "$RESTORE_DIR/settings/npm_global_packages.txt" ]; then
 fi
 
 # ============================================================================
-# 10. Ollama Setup (Qwen 3.6 35B-A3B)
+# 10. Ollama Setup (Qwen 3.5 27B)
 # ============================================================================
 log "🤖 Setting up Ollama..."
 
@@ -339,14 +341,14 @@ if command -v ollama &>/dev/null; then
     fi
 
     # Pull the specified model
-    MODEL="qwen3.6:35b-a3b"
+    MODEL="qwen3.5:27b"
     log "  Pulling model: $MODEL (64k context, Apple Silicon optimized)..."
     ollama pull "$MODEL" 2>&1 | tail -3
 
     # Configure context window (64k = 65536)
     ollama show "$MODEL" --modelfile 2>/dev/null | grep -q "num_ctx" || \
         ollama create "${MODEL}-ctx64k" -f <(cat << 'MODFILE'
-FROM qwen3.6:35b-a3b
+FROM qwen3.5:27b
 PARAMETER num_ctx 65536
 MODFILE
     ) 2>/dev/null || log "  ⚠ Could not set context window (may already be configured)"
@@ -354,6 +356,56 @@ MODFILE
     log "  ✓ Ollama model $MODEL pulled"
 else
     log "  ⚠ Ollama not installed — run 'brew install ollama' manually"
+fi
+
+# ============================================================================
+# 10b. MLX Framework (Apple Silicon Optimization)
+# ============================================================================
+log "🍎 Setting up MLX framework..."
+
+# Install MLX via pip (requires Python — should be available from pyenv step)
+if command -v pip3 &>/dev/null || command -v python3 &>/dev/null; then
+    log "  Installing mlx and mlx-tools..."
+    pip3 install mlx mlx-tools 2>&1 | tail -3 || pip install mlx mlx-tools 2>&1 | tail -3 || \
+        log "  ⚠ MLX installation failed — try: pip3 install mlx mlx-tools"
+
+    # Create MLX model directory
+    MLX_MODELS_DIR="$HOME/.mlx/models/mlx-community"
+    mkdir -p "$MLX_MODELS_DIR"
+    log "  ✓ MLX model directory: $MLX_MODELS_DIR"
+
+    # Download MLX-optimized versions of key models
+    # MLX models from mlx-community on HuggingFace are natively quantized for Apple Silicon
+    # They use .safetensors format (not GGUF) and are faster on M-series chips
+    MLX_MODELS=(
+        "mlx-community/Qwen2.5-Coder-32B-Instruct-4bit"
+        "mlx-community/Qwen2.5-Coder-14B-Instruct-4bit"
+        "mlx-community/Qwen2.5-7B-Instruct-4bit"
+    )
+
+    for mlx_model in "${MLX_MODELS[@]}"; do
+        mlx_dir="$MLX_MODELS_DIR/$(echo "$mlx_model" | tr '/' '_')"
+        if [ ! -d "$mlx_dir" ] || [ -z "$(ls -A "$mlx_dir" 2>/dev/null)" ]; then
+            log "  Downloading MLX model: $mlx_model (~2-8GB each)..."
+            if python3 -c "
+from huggingface_hub import snapshot_download
+import os
+snapshot_download('$mlx_model', local_dir='$mlx_dir', ignore_patterns=['*.git*'])
+" 2>/dev/null; then
+                log "  ✓ MLX model ready: $mlx_model"
+            else
+                log "  ⚠ Could not download MLX model: $mlx_model (skip — run manually if needed)"
+            fi
+        else
+            log "  ✓ MLX model already present: $mlx_model"
+        fi
+    done
+
+    log "  ✓ MLX framework setup complete"
+    log "  Note: For best performance, use MLX models directly via the mlx package"
+    log "  rather than Ollama. See ~/bin/run_mlx for a quick inference script."
+else
+    log "  ⚠ Python not available — MLX skipped (install Python first)"
 fi
 
 # ============================================================================
@@ -367,7 +419,7 @@ cat > "$HOME/bin/run_claude_local" << 'CLAUDE_LOCAL_SCRIPT'
 #!/bin/zsh
 # run_claude_local — Run Claude with local Ollama model
 # Usage: run_claude_local "your prompt"
-#        run_claude_local --model qwen3.6:35b-a3b --prompt "your prompt"
+#        run_claude_local --model qwen3.5:27b --prompt "your prompt"
 
 export ANTHROPIC_BASE_URL="${ANTHROPIC_BASE_URL:-http://localhost:11434}"
 export ANTHROPIC_AUTH_TOKEN="${ANTHROPIC_AUTH_TOKEN:-ollama}"
@@ -390,25 +442,109 @@ log "  Setting up ~/bin/run_claude_server (remote lmstudio server)..."
 
 cat > "$HOME/bin/run_claude_server" << 'CLAUDE_SERVER_SCRIPT'
 #!/bin/zsh
-# run_claude_server — Run Claude with remote Qwen 3.6 35B-A3B via lmstudio
+# run_claude_server — Run Claude with remote Qwen 3.5 27B via lmstudio
 # Usage: run_claude_server "your prompt"
-#        run_claude_server --model qwen/qwen3.6-35b-a3b --prompt "your prompt"
+#        run_claude_server --model qwen/qwen3.5-27b --prompt "your prompt"
 #
 # Requires: lmstudio running on localhost:1234
 
 export ANTHROPIC_BASE_URL="http://localhost:1234"
 export ANTHROPIC_AUTH_TOKEN="lmstudio"
 export CLAUDE_API_KEY="${CLAUDE_API_KEY:-${CLAUDE_API_KEY:-<REDACTED_API_KEY>}}"
-export ANTHROPIC_DEFAULT_HAIKU_MODEL="qwen/qwen3.6-35b-a3b"
-export ANTHROPIC_DEFAULT_OPUS_MODEL="qwen/qwen3.6-35b-a3b"
-export ANTHROPIC_DEFAULT_SONNET_MODEL="qwen/qwen3.6-35b-a3b"
+export ANTHROPIC_DEFAULT_HAIKU_MODEL="qwen/qwen3.5-27b"
+export ANTHROPIC_DEFAULT_OPUS_MODEL="qwen/qwen3.5-27b"
+export ANTHROPIC_DEFAULT_SONNET_MODEL="qwen/qwen3.5-27b"
 export CLAUDE_CODE_ATTRIBUTION_HEADER=0
 
-exec claude --model qwen/qwen3.6-35b-a3b "$@"
+exec claude --model qwen/qwen3.5-27b "$@"
 CLAUDE_SERVER_SCRIPT
 
 chmod +x "$HOME/bin/run_claude_server"
 log "  ✓ ~/bin/run_claude_server created (remote lmstudio)"
+
+# ============================================================================
+# 11b. Open WebUI Backend (launchd daemon — web UI for Ollama)
+# ============================================================================
+log "🌐 Setting up Open WebUI backend..."
+
+# The open-webui cask installs the Electron desktop app.
+# For the web backend (port 8080), we install via pip and run as a launchd daemon.
+# It connects to Ollama on localhost:11434 by default.
+
+if command -v pip3 &>/dev/null || command -v python3 &>/dev/null; then
+    # Install open-webui backend if not already present
+    if ! pip3 show open-webui &>/dev/null && ! pip show open-webui &>/dev/null; then
+        log "  Installing open-webui backend..."
+        pip3 install open-webui 2>&1 | tail -3 || pip install open-webui 2>&1 | tail -3 || \
+            log "  ⚠ open-webui installation failed — try: pip3 install open-webui"
+    else
+        log "  ✓ open-webui already installed"
+    fi
+
+    # Create launchd plist to run the backend automatically
+    LAUNCHD_PLIST="$HOME/Library/LaunchAgents/com.open-webui.backend.plist"
+    mkdir -p "$HOME/Library/LaunchAgents"
+
+    cat > "$LAUNCHD_PLIST" << 'LAUNCHD_EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.open-webui.backend</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/bin/env</string>
+        <string>open-webui</string>
+    </array>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>OLLAMA_BASE_URL</key>
+        <string>http://localhost:11434</string>
+    </dict>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>/tmp/open-webui.stdout.log</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/open-webui.stderr.log</string>
+</dict>
+</plist>
+LAUNCHD_EOF
+
+    # Load the daemon
+    launchctl unload "$LAUNCHD_PLIST" 2>/dev/null || true
+    launchctl load "$LAUNCHD_PLIST"
+    sleep 2
+
+    if lsof -i :8080 &>/dev/null; then
+        log "  ✓ Open WebUI backend running on http://localhost:8080"
+    else
+        log "  ⚠ Open WebUI backend may not have started — check: lsof -i :8080"
+        log "  Logs: tail -f /tmp/open-webui.stderr.log"
+    fi
+else
+    log "  ⚠ Python not available — Open WebUI backend skipped"
+fi
+
+# ============================================================================
+# 11c. LM Studio (manual setup — GUI app)
+# ============================================================================
+log "📋 LM Studio setup..."
+
+if brew list --cask lm-studio &>/dev/null; then
+    log "  ✓ LM Studio installed (open with: open -a 'LM Studio')"
+    log "  Manual steps:"
+    log "    1. Open LM Studio"
+    log "    2. Search for and download: qwen3.5:27b (or your preferred model)"
+    log "    3. Go to the 'Local Server' tab (server icon on the left)"
+    log "    4. Select your downloaded model"
+    log "    5. Click 'Start Server' — API available at http://localhost:1234"
+else
+    log "  ⚠ LM Studio cask not installed — check: brew install --cask lm-studio"
+fi
 
 # ============================================================================
 # 12. Restore Keychain
@@ -497,6 +633,26 @@ export OLLAMA_FLASH_ATTENTION=1
 export OLLAMA_MAX_LOADED_MODELS=1
 '
 
+# MLX Apple Silicon framework
+append_if_missing "MLX framework" '
+# MLX model paths (Apple Silicon native — faster than GGUF on M-series)
+export MLX_MODELS_DIR="$HOME/.mlx/models/mlx-community"
+export PATH="$HOME/.local/bin:$PATH"
+
+# MLX inference helper: mlx run <model> <prompt>
+# Usage: mlx run mlx-community/Qwen2.5-7B-Instruct-4bit "Explain quantum computing"
+alias mlx-run="python3 -c \"
+import mlx.core as ml
+from mlx.evaluate import text_generation
+from mlx_lm import load, generate
+model, tokenizer = load('$MLX_MODELS_DIR/default')
+print(generate(model, tokenizer, prompt=repr(open(0).read()), max_tokens=512, verbose=True))
+\""
+
+# Quick MLX model info
+alias mlx-info='python3 -c "import mlx; print(f\"MLX version: {mlx.__version__}\"); import os; d=os.environ.get(\"MLX_MODELS_DIR\",\"\"); [print(f\"  {f}\") for f in os.listdir(d) if os.path.isdir(os.path.join(d,f))] if os.path.isdir(d) else print(\"  No MLX models found\")"'
+'
+
 # pyenv init
 append_if_missing "pyenv init" '
 # pyenv
@@ -509,10 +665,13 @@ eval "$(pyenv init -)"
 # Aliases
 append_if_missing "backup_and_restore aliases" '
 # AI model aliases
-alias ask="ollama run qwen3.6:35b-a3b"
-alias ask-coder="ollama run qwen3.6:35b-a3b-coder"
+alias ask="ollama run qwen3.5:27b"
 alias claude-local="$HOME/bin/run_claude_local"
 alias claude-server="$HOME/bin/run_claude_server"
+
+# Open WebUI
+alias webui-open="open http://localhost:8080"
+alias webui-logs="tail -f /tmp/open-webui.stderr.log"
 
 # Python venv
 if [ -f "$HOME/venv/bin/activate" ]; then
@@ -580,6 +739,8 @@ log "  8. FileVault — if not enabled above, run: sudo fdesetup enable -user $U
 log "  9. System Settings > Battery > Power — set to 'High Performance'"
 log "  10. System Settings > Desktop & Screen Saver — customize wallpaper"
 log "  11. System Settings > Privacy > Location Services — verify app permissions"
+log "  12. LM Studio — open app, download qwen3.5:27b, start Local Server"
+log "  13. MLX models — download via: python3 -c \"from huggingface_hub import snapshot_download; snapshot_download('mlx-community/qwen2.5-coder-32b-instruct-4bit', local_dir='\$HOME/.mlx/models/mlx-community/qwen2.5-coder-32b-4bit')\""
 log ""
 log "=============================================="
 log ""
@@ -595,7 +756,9 @@ log "  2. Verify your apps: $(ls /Applications/ | wc -l | tr -d ' ') apps instal
 log "  3. Check Ollama: ollama list"
 log "  4. Test Claude (local): ~/bin/run_claude_local 'hello'"
 log "  5. Test Claude (server): ~/bin/run_claude_server 'hello'"
-log "  5. Verify settings: pmset -g custom"
-log "  6. Verify FileVault: fdesetup status"
+log "  6. Open WebUI: webui-open (http://localhost:8080)"
+log "  7. MLX models: mlx-info"
+log "  8. Verify settings: pmset -g custom"
+log "  9. Verify FileVault: fdesetup status"
 log ""
 log "Your new M5 MacBook Air is ready to use!"

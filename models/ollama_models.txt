@@ -10,10 +10,17 @@ qwen2.5-coder:7b                  dae161e27b0e    4.7 GB    4 weeks ago
 freehuntx/qwen3-coder:14b         c4df7399b89e    9.3 GB    4 weeks ago    
 qwen3:14b                         bdbd181c33f2    9.3 GB    4 weeks ago    
 qwen3:8b                          500a1f067a9f    5.2 GB    4 weeks ago    
-qwen3.5:35b-a3b                   3460ffeede54    23 GB     4 weeks ago    
+qwen3.5:27b                       3460ffeede54    23 GB     4 weeks ago
 qwen3-coder:30b                   06c1097efce0    18 GB     4 weeks ago    
 qwen3-coder:latest                06c1097efce0    18 GB     4 weeks ago    
 qwen3:4b-thinking                 359d7dd4bcda    2.5 GB    4 weeks ago    
 llama3.1:latest                   46e0c10c039e    4.9 GB    4 weeks ago    
 qwen3.6:latest                    07d35212591f    23 GB     4 weeks ago    
-qwen3.5:9b                        6488c96fa5fa    6.6 GB    4 weeks ago    
+qwen3.5:9b                        6488c96fa5fa    6.6 GB    4 weeks ago
+
+# MLX models (Apple Silicon native .safetensors — faster than GGUF on M-series)
+# Download via: huggingface-cli download mlx-community/<model> --local-dir ~/.mlx/models/mlx-community/<model>
+# mlx-community/Qwen2.5-Coder-32B-Instruct-4bit    ~19GB
+# mlx-community/Qwen2.5-Coder-14B-Instruct-4bit    ~9GB
+# mlx-community/Qwen2.5-7B-Instruct-4bit            ~5GB
+# mlx-community/Llama-3.3-70B-Instruct-4bit        ~40GB    

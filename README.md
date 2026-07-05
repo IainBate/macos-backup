@@ -59,7 +59,7 @@ The script automates as much as possible, but these steps require your interacti
 
 ## Model Configuration
 
-Two Claude scripts are created, each routing to a different Qwen 3.6 35B-A3B backend:
+Three inference backends are configured, each routing to a different Qwen 3.5 27B backend:
 
 ### `~/bin/run_claude_local` — Local Ollama (no internet required)
 
@@ -78,16 +78,36 @@ Routes through a remote lmstudio instance on `localhost:1234`. Sets model aliase
 ```
 export ANTHROPIC_BASE_URL=http://localhost:1234
 export ANTHROPIC_AUTH_TOKEN=lmstudio
-export ANTHROPIC_DEFAULT_HAIKU_MODEL="qwen/qwen3.6-35b-a3b"
-export ANTHROPIC_DEFAULT_OPUS_MODEL="qwen/qwen3.6-35b-a3b"
-export ANTHROPIC_DEFAULT_SONNET_MODEL="qwen/qwen3.6-35b-a3b"
+export ANTHROPIC_DEFAULT_HAIKU_MODEL="qwen/qwen3.5-27b"
+export ANTHROPIC_DEFAULT_OPUS_MODEL="qwen/qwen3.5-27b"
+export ANTHROPIC_DEFAULT_SONNET_MODEL="qwen/qwen3.5-27b"
 export CLAUDE_CODE_ATTRIBUTION_HEADER=0
 ```
 
+### Open WebUI — Web interface for Ollama
+
+A web-based chat interface for interacting with Ollama-hosted models.
+
+- **Desktop app**: `open-webui` cask (auto-installed)
+- **Backend**: runs on `http://localhost:8080` via launchd
+- **Connects to**: Ollama at `localhost:11434`
+- **Open**: `webui-open` alias or visit http://localhost:8080
+- **Logs**: `webui-logs` alias or `tail -f /tmp/open-webui.stderr.log`
+
+### MLX — Apple Silicon native models
+
+MLX models use `.safetensors` format (not GGUF) and are natively optimized for Apple Silicon.
+
+- **Models**: stored in `~/.mlx/models/mlx-community/`
+- **Check models**: `mlx-info` alias
+- **Inference**: `python3 -c "from mlx_lm import load, generate; model, tok = load('<model_path>'); print(generate(model, tok, prompt='hello', max_tokens=256))"`
+- **Convert GGUF → MLX**: `convert_hf_to_gguf <model> --outfile <output>.gguf` (mlx-tools)
+- **Download**: `huggingface-cli download mlx-community/<model> --local-dir ~/.mlx/models/mlx-community/<model>`
+
 **Usage:**
 ```zsh
-claude --model qwen/qwen3.6-35b-a3b          # via run_claude_local (local)
-claude --model qwen/qwen3.6-35b-a3b          # via run_claude_server (remote)
+claude --model qwen/qwen3.5-27b          # via run_claude_local (local)
+claude --model qwen/qwen3.5-27b          # via run_claude_server (remote)
 ```
 
 ## Directory Structure
@@ -122,7 +142,10 @@ The backup files are written to `./backup_output/` (a subfolder of the directory
 │   ├── keychain/
 │   │   └── keychain_backup.keychain
 │   └── models/
-│       └── ollama_models.txt
+│       ├── ollama_models.txt
+│       ├── mlx_models/
+│       │   └── mlx_models.txt       # MLX model sizes
+│       └── mlx_models_manifest.txt  # MLX model list
 ```
 
 ## Troubleshooting
