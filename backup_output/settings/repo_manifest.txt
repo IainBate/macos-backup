@@ -1,5 +1,5 @@
-/Users/iain/backup_and_restore/|git@github.com:IainBate/macos-backup.git|
-/Users/iain/bin/|https://github.com/IainBate/OSX-bin-files.git|
-/Users/iain/heating_automation/|git@github.com:IainBate/heating-automation.git|
-/Users/iain/home_automation/|git@github.com:IainBate/home-automation.git|
-/Users/iain/Workload Model/|git@github.com:IainBate/workload-model.git|
+/Users/iain/backup_and_restore/|git@github.com:IainBate/macos-backup.git|main
+/Users/iain/bin/|https://github.com/IainBate/OSX-bin-files.git|main
+/Users/iain/heating_automation/|git@github.com:IainBate/heating-automation.git|main
+/Users/iain/home_automation/|git@github.com:IainBate/home-automation.git|main
+/Users/iain/Workload Model/|git@github.com:IainBate/workload-model.git|main
