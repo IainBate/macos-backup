@@ -263,6 +263,8 @@ sync_repos() {
             log "  ✓ $repo_name: up to date"
         else
             git add -A 2>/dev/null
+            # Don't commit backup_output here — the main commit section handles it
+            git reset -- backup_output/ 2>/dev/null || true
             if git diff --cached --quiet; then
                 log "  ✓ $repo_name: no changes to commit"
             else
@@ -299,6 +301,9 @@ sync_repos "$HOME"
 log "📤 Committing to git..."
 
 cd "$SCRIPT_DIR"
+
+# Reset backup_output files in index (sync_repos may have staged them)
+git reset -- backup_output/ 2>/dev/null || true
 
 git add backup_output/
 git diff --cached --quiet || \
