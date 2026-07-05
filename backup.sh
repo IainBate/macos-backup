@@ -258,6 +258,10 @@ sync_repos() {
 
         cd "$dir"
 
+        # Determine branch (needed for manifest and push)
+        local branch
+        branch=$(git branch --show-current 2>/dev/null || echo "main")
+
         # Commit any uncommitted changes
         if git diff --quiet && git diff --cached --quiet && [ -z "$(git ls-files --others --exclude-standard)" ]; then
             log "  ✓ $repo_name: up to date"
@@ -266,8 +270,6 @@ sync_repos() {
             if git diff --cached --quiet; then
                 log "  ✓ $repo_name: no changes to commit"
             else
-                local branch
-                branch=$(git branch --show-current 2>/dev/null || echo "main")
                 git commit -m "auto backup: $(date +'%Y-%m-%d %H:%M:%S')" 2>/dev/null || {
                     log "  ⚠ $repo_name: commit failed — check for merge conflicts"
                     continue
