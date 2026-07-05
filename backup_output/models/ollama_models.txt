@@ -1,8 +1,9 @@
 NAME                              ID              SIZE      MODIFIED    
-qwen-coder-custom:latest          98b185c13b0e    9.3 GB    2 days ago     
-qwen3:14b-q4_K_M                  bdbd181c33f2    9.3 GB    2 days ago     
-qwen2.5-coder:7b-instruct-q8_0    7e480bd46127    8.1 GB    4 days ago     
-gemma-claude:latest               83a3720fa536    7.6 GB    6 days ago     
+qwen3.5:27b                       7653528ba5cb    17 GB     2 days ago     
+qwen-coder-custom:latest          98b185c13b0e    9.3 GB    4 days ago     
+qwen3:14b-q4_K_M                  bdbd181c33f2    9.3 GB    4 days ago     
+qwen2.5-coder:7b-instruct-q8_0    7e480bd46127    8.1 GB    7 days ago     
+gemma-claude:latest               83a3720fa536    7.6 GB    9 days ago     
 gemma4:12b                        4eb23ef187e2    7.6 GB    3 weeks ago    
 gemma4:e4b                        c6eb396dbd59    9.6 GB    3 weeks ago    
 gemma4-claude:latest              6ff1240590e6    7.6 GB    3 weeks ago    

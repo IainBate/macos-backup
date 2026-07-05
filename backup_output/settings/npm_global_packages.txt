@@ -1,4 +1,4 @@
 /opt/homebrew/lib
-├── @anthropic-ai/claude-code@2.1.199
+├── @anthropic-ai/claude-code@2.1.201
 └── npm@11.12.1
 

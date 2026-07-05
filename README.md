@@ -78,9 +78,9 @@ Routes through a remote lmstudio instance on `localhost:1234`. Sets model aliase
 ```
 export ANTHROPIC_BASE_URL=http://localhost:1234
 export ANTHROPIC_AUTH_TOKEN=lmstudio
-export ANTHROPIC_DEFAULT_HAIKU_MODEL="qwen/qwen3.5-27b"
-export ANTHROPIC_DEFAULT_OPUS_MODEL="qwen/qwen3.5-27b"
-export ANTHROPIC_DEFAULT_SONNET_MODEL="qwen/qwen3.5-27b"
+export ANTHROPIC_DEFAULT_HAIKU_MODEL="qwen3:32b"
+export ANTHROPIC_DEFAULT_OPUS_MODEL="qwen3:32b"
+export ANTHROPIC_DEFAULT_SONNET_MODEL="qwen3:32b"
 export CLAUDE_CODE_ATTRIBUTION_HEADER=0
 ```
 
@@ -94,20 +94,19 @@ A web-based chat interface for interacting with Ollama-hosted models.
 - **Open**: `webui-open` alias or visit http://localhost:8080
 - **Logs**: `webui-logs` alias or `tail -f /tmp/open-webui.stderr.log`
 
-### MLX — Apple Silicon native models
+### MLX — Apple Silicon native models (optional)
 
-MLX models use `.safetensors` format (not GGUF) and are natively optimized for Apple Silicon.
+MLX framework is installed but **no models are downloaded automatically** — use Ollama for models instead.
 
-- **Models**: stored in `~/.mlx/models/mlx-community/`
-- **Check models**: `mlx-info` alias
-- **Inference**: `python3 -c "from mlx_lm import load, generate; model, tok = load('<model_path>'); print(generate(model, tok, prompt='hello', max_tokens=256))"`
+- **Framework**: `mlx` + `mlx-tools` (via pip)
+- **Models**: manual download to `~/.mlx/models/mlx-community/`
 - **Convert GGUF → MLX**: `convert_hf_to_gguf <model> --outfile <output>.gguf` (mlx-tools)
 - **Download**: `huggingface-cli download mlx-community/<model> --local-dir ~/.mlx/models/mlx-community/<model>`
 
 **Usage:**
 ```zsh
-claude --model qwen/qwen3.5-27b          # via run_claude_local (local)
-claude --model qwen/qwen3.5-27b          # via run_claude_server (remote)
+claude --model qwen3:32b          # via run_claude_local (local, Ollama)
+claude --model qwen3:32b          # via run_claude_server (remote, lmstudio)
 ```
 
 ## Directory Structure
