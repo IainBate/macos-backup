@@ -231,6 +231,69 @@ log "📊 Capturing system info..."
 } > "$BACKUP_DIR/settings/system_info.txt"
 
 # ============================================================================
+# 7.5 Sync all git repos under $HOME to their remotes
+# ============================================================================
+log "🔄 Syncing git repos under $HOME..."
+
+REPO_MANIFEST="$BACKUP_DIR/settings/repo_manifest.txt"
+> "$REPO_MANIFEST"
+
+sync_repos() {
+    local home="$1"
+    local synced=0
+
+    for dir in "$home"/*/; do
+        [ -d "$dir" ] || continue
+        [ -d "$dir/.git" ] || continue
+
+        local repo_name
+        repo_name=$(basename "$dir")
+        local repo_url
+        repo_url=$(cd "$dir" && git remote get-url origin 2>/dev/null || echo "")
+
+        if [ -z "$repo_url" ]; then
+            log "  ⚠ $repo_name: no origin remote — skipping"
+            continue
+        fi
+
+        cd "$dir"
+
+        # Commit any uncommitted changes
+        if git diff --quiet && git diff --cached --quiet && [ -z "$(git ls-files --others --exclude-standard)" ]; then
+            log "  ✓ $repo_name: up to date"
+        else
+            git add -A 2>/dev/null
+            if git diff --cached --quiet; then
+                log "  ✓ $repo_name: no changes to commit"
+            else
+                local branch
+                branch=$(git branch --show-current 2>/dev/null || echo "main")
+                git commit -m "auto backup: $(date +'%Y-%m-%d %H:%M:%S')" 2>/dev/null || {
+                    log "  ⚠ $repo_name: commit failed — check for merge conflicts"
+                    continue
+                }
+                log "  ✓ $repo_name: committed"
+            fi
+
+            # Push to remote
+            if git push origin "$branch" 2>&1 | tail -1; then
+                log "  ✓ $repo_name: pushed"
+            else
+                log "  ⚠ $repo_name: push failed — check SSH keys and remote access"
+            fi
+        fi
+
+        # Record for manifest (repo path, remote URL, branch)
+        echo "$dir|$repo_url|$branch" >> "$REPO_MANIFEST"
+        synced=$((synced + 1))
+    done
+
+    log "  Synced $synced repo(s) under $home"
+}
+
+sync_repos "$HOME"
+
+# ============================================================================
 # 8. Commit backup files to parent repo
 # ============================================================================
 log "📤 Committing to git..."

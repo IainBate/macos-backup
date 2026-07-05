@@ -264,6 +264,48 @@ log "  Note: Console.app and Disk Utility are built into macOS"
 log "  Summary: $INSTALLED installed, $FAILED failed"
 
 # ============================================================================
+# 7.5 Restore git repos from manifest
+# ============================================================================
+log "🔄 Restoring git repos from backup..."
+
+MANIFEST="$RESTORE_DIR/settings/repo_manifest.txt"
+
+if [ -f "$MANIFEST" ]; then
+    while IFS='|' read -r repo_path repo_url repo_branch; do
+        [ -z "$repo_path" ] && continue
+        [ -z "$repo_url" ] && continue
+
+        local_name=$(basename "$repo_path")
+
+        # Skip if already exists
+        if [ -d "$repo_path/.git" ]; then
+            log "  ✓ $local_name already exists at $repo_path"
+            continue
+        fi
+
+        # Create parent directory if needed
+        parent_dir=$(dirname "$repo_path")
+        mkdir -p "$parent_dir"
+
+        log "  Cloning $local_name from $repo_url ..."
+        if git clone "$repo_url" "$repo_path" 2>&1 | tail -1; then
+            cd "$repo_path"
+            # Check out the recorded branch
+            if git branch --list "$repo_branch" &>/dev/null; then
+                git checkout "$repo_branch" 2>/dev/null
+            fi
+            log "  ✓ $local_name restored to $repo_path"
+        else
+            log "  ⚠ Failed to clone $local_name — run manually: git clone $repo_url $repo_path"
+        fi
+    done < "$MANIFEST"
+    log "  ✓ Git repos restored from manifest"
+else
+    log "  ⚠ No repo manifest found — skipping git repo restore"
+    log "  Manual: clone your repos to the desired locations under $HOME"
+fi
+
+# ============================================================================
 # 8. Python via pyenv
 # ============================================================================
 log "🐍 Setting up Python via pyenv..."
