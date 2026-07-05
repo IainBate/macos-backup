@@ -383,14 +383,14 @@ if command -v ollama &>/dev/null; then
     fi
 
     # Pull the specified model
-    MODEL="qwen3.5:27b"
-    log "  Pulling model: $MODEL (64k context, Apple Silicon optimized)..."
+    MODEL="qwen3:32b"
+    log "  Pulling model: $MODEL (~19 GB, general-purpose)..."
     ollama pull "$MODEL" 2>&1 | tail -3
 
     # Configure context window (64k = 65536)
     ollama show "$MODEL" --modelfile 2>/dev/null | grep -q "num_ctx" || \
         ollama create "${MODEL}-ctx64k" -f <(cat << 'MODFILE'
-FROM qwen3.5:27b
+FROM qwen3:32b
 PARAMETER num_ctx 65536
 MODFILE
     ) 2>/dev/null || log "  ⚠ Could not set context window (may already be configured)"
@@ -411,41 +411,7 @@ if command -v pip3 &>/dev/null || command -v python3 &>/dev/null; then
     pip3 install mlx mlx-tools 2>&1 | tail -3 || pip install mlx mlx-tools 2>&1 | tail -3 || \
         log "  ⚠ MLX installation failed — try: pip3 install mlx mlx-tools"
 
-    # Create MLX model directory
-    MLX_MODELS_DIR="$HOME/.mlx/models/mlx-community"
-    mkdir -p "$MLX_MODELS_DIR"
-    log "  ✓ MLX model directory: $MLX_MODELS_DIR"
-
-    # Download MLX-optimized versions of key models
-    # MLX models from mlx-community on HuggingFace are natively quantized for Apple Silicon
-    # They use .safetensors format (not GGUF) and are faster on M-series chips
-    MLX_MODELS=(
-        "mlx-community/Qwen2.5-Coder-32B-Instruct-4bit"
-        "mlx-community/Qwen2.5-Coder-14B-Instruct-4bit"
-        "mlx-community/Qwen2.5-7B-Instruct-4bit"
-    )
-
-    for mlx_model in "${MLX_MODELS[@]}"; do
-        mlx_dir="$MLX_MODELS_DIR/$(echo "$mlx_model" | tr '/' '_')"
-        if [ ! -d "$mlx_dir" ] || [ -z "$(ls -A "$mlx_dir" 2>/dev/null)" ]; then
-            log "  Downloading MLX model: $mlx_model (~2-8GB each)..."
-            if python3 -c "
-from huggingface_hub import snapshot_download
-import os
-snapshot_download('$mlx_model', local_dir='$mlx_dir', ignore_patterns=['*.git*'])
-" 2>/dev/null; then
-                log "  ✓ MLX model ready: $mlx_model"
-            else
-                log "  ⚠ Could not download MLX model: $mlx_model (skip — run manually if needed)"
-            fi
-        else
-            log "  ✓ MLX model already present: $mlx_model"
-        fi
-    done
-
-    log "  ✓ MLX framework setup complete"
-    log "  Note: For best performance, use MLX models directly via the mlx package"
-    log "  rather than Ollama. See ~/bin/run_mlx for a quick inference script."
+    log "  ✓ MLX framework installed (no models downloaded — use Ollama for models)"
 else
     log "  ⚠ Python not available — MLX skipped (install Python first)"
 fi
@@ -461,7 +427,7 @@ cat > "$HOME/bin/run_claude_local" << 'CLAUDE_LOCAL_SCRIPT'
 #!/bin/zsh
 # run_claude_local — Run Claude with local Ollama model
 # Usage: run_claude_local "your prompt"
-#        run_claude_local --model qwen3.5:27b --prompt "your prompt"
+#        run_claude_local --model qwen3:32b --prompt "your prompt"
 
 export ANTHROPIC_BASE_URL="${ANTHROPIC_BASE_URL:-http://localhost:11434}"
 export ANTHROPIC_AUTH_TOKEN="${ANTHROPIC_AUTH_TOKEN:-ollama}"
@@ -484,21 +450,21 @@ log "  Setting up ~/bin/run_claude_server (remote lmstudio server)..."
 
 cat > "$HOME/bin/run_claude_server" << 'CLAUDE_SERVER_SCRIPT'
 #!/bin/zsh
-# run_claude_server — Run Claude with remote Qwen 3.5 27B via lmstudio
+# run_claude_server — Run Claude with remote Qwen 3 32B via lmstudio
 # Usage: run_claude_server "your prompt"
-#        run_claude_server --model qwen/qwen3.5-27b --prompt "your prompt"
+#        run_claude_server --model qwen3:32b --prompt "your prompt"
 #
 # Requires: lmstudio running on localhost:1234
 
 export ANTHROPIC_BASE_URL="http://localhost:1234"
 export ANTHROPIC_AUTH_TOKEN="lmstudio"
 export CLAUDE_API_KEY="${CLAUDE_API_KEY:-${CLAUDE_API_KEY:-<REDACTED_API_KEY>}}"
-export ANTHROPIC_DEFAULT_HAIKU_MODEL="qwen/qwen3.5-27b"
-export ANTHROPIC_DEFAULT_OPUS_MODEL="qwen/qwen3.5-27b"
-export ANTHROPIC_DEFAULT_SONNET_MODEL="qwen/qwen3.5-27b"
+export ANTHROPIC_DEFAULT_HAIKU_MODEL="qwen3:32b"
+export ANTHROPIC_DEFAULT_OPUS_MODEL="qwen3:32b"
+export ANTHROPIC_DEFAULT_SONNET_MODEL="qwen3:32b"
 export CLAUDE_CODE_ATTRIBUTION_HEADER=0
 
-exec claude --model qwen/qwen3.5-27b "$@"
+exec claude --model qwen3:32b "$@"
 CLAUDE_SERVER_SCRIPT
 
 chmod +x "$HOME/bin/run_claude_server"
@@ -580,7 +546,7 @@ if brew list --cask lm-studio &>/dev/null; then
     log "  ✓ LM Studio installed (open with: open -a 'LM Studio')"
     log "  Manual steps:"
     log "    1. Open LM Studio"
-    log "    2. Search for and download: qwen3.5:27b (or your preferred model)"
+    log "    2. Search for and download: qwen3:32b, start Local Server"
     log "    3. Go to the 'Local Server' tab (server icon on the left)"
     log "    4. Select your downloaded model"
     log "    5. Click 'Start Server' — API available at http://localhost:1234"
@@ -707,7 +673,7 @@ eval "$(pyenv init -)"
 # Aliases
 append_if_missing "backup_and_restore aliases" '
 # AI model aliases
-alias ask="ollama run qwen3.5:27b"
+alias ask="ollama run qwen3:32b"
 alias claude-local="$HOME/bin/run_claude_local"
 alias claude-server="$HOME/bin/run_claude_server"
 
@@ -781,7 +747,7 @@ log "  8. FileVault — if not enabled above, run: sudo fdesetup enable -user $U
 log "  9. System Settings > Battery > Power — set to 'High Performance'"
 log "  10. System Settings > Desktop & Screen Saver — customize wallpaper"
 log "  11. System Settings > Privacy > Location Services — verify app permissions"
-log "  12. LM Studio — open app, download qwen3.5:27b, start Local Server"
+log "  12. LM Studio — open app, download qwen3:32b, start Local Server"
 log "  13. MLX models — download via: python3 -c \"from huggingface_hub import snapshot_download; snapshot_download('mlx-community/qwen2.5-coder-32b-instruct-4bit', local_dir='\$HOME/.mlx/models/mlx-community/qwen2.5-coder-32b-4bit')\""
 log ""
 log "=============================================="
