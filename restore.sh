@@ -421,44 +421,86 @@ fi
 # ============================================================================
 log "🤖 Setting up Claude integration..."
 
+# --- Move old run_claude_* scripts to old_routines (if they exist) ---
+log "  Moving old run_claude_* scripts to old_routines..."
+
+OLD_DIR="$HOME/bin/old_routines"
+mkdir -p "$OLD_DIR"
+
+for old_script in run_claude_gwen run_claude_gemma run_claude_qwen; do
+    if [ -f "$HOME/bin/$old_script" ]; then
+        cp -p "$HOME/bin/$old_script" "$OLD_DIR/$old_script"
+        rm -f "$HOME/bin/$old_script"
+        log "  ✓ Moved $old_script → old_routines/"
+    fi
+done
+
+# --- Pull qwen3:32b model (general-purpose, Q5_K_M recommended) ---
+log "  Checking qwen3:32b model..."
+
+if ! ollama list 2>/dev/null | grep -q 'qwen3:32b'; then
+    log "  Pulling qwen3:32b (general-purpose, ~19 GB)..."
+    ollama pull qwen3:32b 2>&1 | tail -3
+    log "  ✓ qwen3:32b pulled"
+else
+    log "  ✓ qwen3:32b already installed"
+fi
+
+# --- Create claude_code_local: Ollama local (qwen3:32b, Q5_K_M) ---
+log "  Creating ~/bin/claude_code_local (Ollama local, qwen3:32b)..."
+
 mkdir -p "$HOME/bin"
 
-cat > "$HOME/bin/run_claude_local" << 'CLAUDE_LOCAL_SCRIPT'
+cat > "$HOME/bin/claude_code_local" << 'CLAUDE_LOCAL_SCRIPT'
 #!/bin/zsh
-# run_claude_local — Run Claude with local Ollama model
-# Usage: run_claude_local "your prompt"
-#        run_claude_local --model qwen3:32b --prompt "your prompt"
+# claude_code_local — Run Claude Code with local Ollama model
+# Optimized for M5 MacBook with 32 GB RAM
+# Model: qwen3:32b (Q5_K_M quantization, ~22 GB VRAM)
+#
+# Usage: claude_code_local "your prompt"
+#        claude_code_local --model qwen3:32b --prompt "your prompt"
+#
+# Connects to Ollama on localhost:11434.
 
 export ANTHROPIC_BASE_URL="${ANTHROPIC_BASE_URL:-http://localhost:11434}"
 export ANTHROPIC_AUTH_TOKEN="${ANTHROPIC_AUTH_TOKEN:-ollama}"
-export CLAUDE_API_KEY="${CLAUDE_API_KEY:-${CLAUDE_API_KEY:-<REDACTED_API_KEY>}}"
+export CLAUDE_API_KEY="${CLAUDE_API_KEY:-}"
+
+# M5 / 32 GB optimized parameters
+export OLLAMA_NUM_PARALLEL=1
+export OLLAMA_MAX_LOADED_MODELS=1
+export OLLAMA_FLASH_ATTENTION=1
 
 # Start Ollama if not running
 if ! lsof -i :11434 &>/dev/null; then
+    echo "Starting Ollama server..."
     ollama serve &
     sleep 3
 fi
 
-exec claude "$@"
+exec claude --model qwen3:32b "$@"
 CLAUDE_LOCAL_SCRIPT
 
-chmod +x "$HOME/bin/run_claude_local"
-log "  ✓ ~/bin/run_claude_local created (local Ollama)"
+chmod +x "$HOME/bin/claude_code_local"
+log "  ✓ ~/bin/claude_code_local created"
 
-# --- Second Claude script: remote server via lmstudio on port 1234 ---
-log "  Setting up ~/bin/run_claude_server (remote lmstudio server)..."
+# --- Create claude_code_server: LM Studio remote (qwen3:32b, Q5_K_M) ---
+log "  Creating ~/bin/claude_code_server (LM Studio remote, qwen3:32b)..."
 
-cat > "$HOME/bin/run_claude_server" << 'CLAUDE_SERVER_SCRIPT'
+cat > "$HOME/bin/claude_code_server" << 'CLAUDE_SERVER_SCRIPT'
 #!/bin/zsh
-# run_claude_server — Run Claude with remote Qwen 3 32B via lmstudio
-# Usage: run_claude_server "your prompt"
-#        run_claude_server --model qwen3:32b --prompt "your prompt"
+# claude_code_server — Run Claude Code with remote model via LM Studio
+# Optimized for M5 MacBook with 32 GB RAM
+# Model: qwen3:32b (Q5_K_M quantization, ~22 GB VRAM)
 #
-# Requires: lmstudio running on localhost:1234
+# Usage: claude_code_server "your prompt"
+#        claude_code_server --model qwen3:32b --prompt "your prompt"
+#
+# Requires: LM Studio running on localhost:1234 with qwen3:32b loaded.
 
 export ANTHROPIC_BASE_URL="http://localhost:1234"
 export ANTHROPIC_AUTH_TOKEN="lmstudio"
-export CLAUDE_API_KEY="${CLAUDE_API_KEY:-${CLAUDE_API_KEY:-<REDACTED_API_KEY>}}"
+export CLAUDE_API_KEY="${CLAUDE_API_KEY:-}"
 export ANTHROPIC_DEFAULT_HAIKU_MODEL="qwen3:32b"
 export ANTHROPIC_DEFAULT_OPUS_MODEL="qwen3:32b"
 export ANTHROPIC_DEFAULT_SONNET_MODEL="qwen3:32b"
@@ -467,8 +509,69 @@ export CLAUDE_CODE_ATTRIBUTION_HEADER=0
 exec claude --model qwen3:32b "$@"
 CLAUDE_SERVER_SCRIPT
 
-chmod +x "$HOME/bin/run_claude_server"
-log "  ✓ ~/bin/run_claude_server created (remote lmstudio)"
+chmod +x "$HOME/bin/claude_code_server"
+log "  ✓ ~/bin/claude_code_server created"
+
+# --- Create run_claude: general-purpose (qwen3:32b, Q5_K_M) ---
+log "  Creating ~/bin/run_claude (general-purpose, qwen3:32b)..."
+
+cat > "$HOME/bin/run_claude" << 'RUN_CLAUDE_SCRIPT'
+#!/bin/zsh
+# run_claude — Run Claude Code with the general-purpose model (qwen3:32b)
+# Optimized for M5 MacBook with 32 GB RAM
+#
+# Default model: qwen3:32b (Q5_K_M quantization, ~22 GB VRAM)
+# General-purpose model — better for reasoning, writing, analysis, and
+# everyday tasks. Use claude_code_local for coding-specific tasks.
+#
+# M5 / 32 GB optimized parameters:
+#   - Q5_K_M quantization: ~22 GB VRAM (leaves ~10 GB for OS)
+#   - 131k context window
+#   - Medium thinking mode (qwen3 supports built-in reasoning)
+#   - Flash attention enabled for Apple Silicon
+#   - Single model loaded for memory efficiency
+#
+# Usage: run_claude "your prompt"
+#        run_claude --model qwen3:32b --prompt "your prompt"
+#
+# Connects to Ollama on localhost:11434.
+
+export ANTHROPIC_BASE_URL="${ANTHROPIC_BASE_URL:-http://localhost:11434}"
+export ANTHROPIC_AUTH_TOKEN="${ANTHROPIC_AUTH_TOKEN:-ollama}"
+export CLAUDE_API_KEY="${CLAUDE_API_KEY:-}"
+
+# M5 / 32 GB optimized parameters
+export OLLAMA_NUM_PARALLEL=1
+export OLLAMA_MAX_LOADED_MODELS=1
+export OLLAMA_FLASH_ATTENTION=1
+
+# Start Ollama if not running
+if ! lsof -i :11434 &>/dev/null; then
+    echo "Starting Ollama server..."
+    ollama serve &
+    sleep 3
+fi
+
+exec claude --model qwen3:32b "$@"
+RUN_CLAUDE_SCRIPT
+
+chmod +x "$HOME/bin/run_claude"
+log "  ✓ ~/bin/run_claude created"
+
+# --- Commit the script moves to the bin repo ---
+log "  Committing script moves to git..."
+
+if [ -d "$HOME/bin/.git" ]; then
+    cd "$HOME/bin"
+    git add -A
+    git diff --cached --quiet || \
+        git commit -m "Rename run_claude_* scripts: claude_code_local, claude_code_server, run_claude" 2>/dev/null && \
+        log "  ✓ Committed script moves to bin repo" || \
+        log "  ⚠ No changes to commit in bin repo"
+    cd - > /dev/null
+else
+    log "  ⚠ ~/bin is not a git repo — skipping commit"
+fi
 
 # ============================================================================
 # 11b. Open WebUI Backend (launchd daemon — web UI for Ollama)
@@ -674,8 +777,9 @@ eval "$(pyenv init -)"
 append_if_missing "backup_and_restore aliases" '
 # AI model aliases
 alias ask="ollama run qwen3:32b"
-alias claude-local="$HOME/bin/run_claude_local"
-alias claude-server="$HOME/bin/run_claude_server"
+alias claude="$HOME/bin/run_claude"
+alias claude-local="$HOME/bin/claude_code_local"
+alias claude-server="$HOME/bin/claude_code_server"
 
 # Open WebUI
 alias webui-open="open http://localhost:8080"
@@ -762,8 +866,9 @@ log "Next steps:"
 log "  1. Run the manual steps listed above"
 log "  2. Verify your apps: $(ls /Applications/ | wc -l | tr -d ' ') apps installed"
 log "  3. Check Ollama: ollama list"
-log "  4. Test Claude (local): ~/bin/run_claude_local 'hello'"
-log "  5. Test Claude (server): ~/bin/run_claude_server 'hello'"
+log "  4. Test Claude (general): ~/bin/run_claude 'hello'"
+log "  5. Test Claude (local): ~/bin/claude_code_local 'hello'"
+log "  6. Test Claude (server): ~/bin/claude_code_server 'hello'"
 log "  6. Open WebUI: webui-open (http://localhost:8080)"
 log "  7. MLX models: mlx-info"
 log "  8. Verify settings: pmset -g custom"
