@@ -59,7 +59,7 @@ The script automates as much as possible, but these steps require your interacti
 
 ## Model Configuration
 
-Three inference backends are configured, each routing to Qwen 3 32B (Q5_K_M, ~22 GB):
+Three inference backends are configured, each routing to Qwen 3 Coder Next (same as user's local setup):
 
 ### `~/bin/claude_code_local` — Local Ollama (no internet required)
 
@@ -78,15 +78,15 @@ Routes through a remote LM Studio instance on `localhost:1234`. Sets model alias
 ```
 export ANTHROPIC_BASE_URL=http://localhost:1234
 export ANTHROPIC_AUTH_TOKEN=lmstudio
-export ANTHROPIC_DEFAULT_HAIKU_MODEL="qwen3:32b"
-export ANTHROPIC_DEFAULT_OPUS_MODEL="qwen3:32b"
-export ANTHROPIC_DEFAULT_SONNET_MODEL="qwen3:32b"
+export ANTHROPIC_DEFAULT_HAIKU_MODEL="qwen3-coder-next"
+export ANTHROPIC_DEFAULT_OPUS_MODEL="qwen3-coder-next"
+export ANTHROPIC_DEFAULT_SONNET_MODEL="qwen3-coder-next"
 export CLAUDE_CODE_ATTRIBUTION_HEADER=0
 ```
 
 ### `~/bin/run_claude` — General-purpose (recommended)
 
-The default script for everyday use. Uses Ollama with qwen3:32b (Q5_K_M, ~22 GB) — a general-purpose model better for reasoning, writing, and analysis. Optimized for M5 / 32 GB:
+The default script for everyday use. Uses Ollama with qwen3-coder-next — a general-purpose model better for reasoning, writing, and analysis. Optimized for M5 / 32 GB:
 
 ```
 export OLLAMA_NUM_PARALLEL=1
@@ -115,9 +115,9 @@ MLX framework is installed but **no models are downloaded automatically** — us
 
 **Usage:**
 ```zsh
-claude --model qwen3:32b          # via run_claude (general, Ollama)
-claude --model qwen3:32b          # via claude_code_local (local, Ollama)
-claude --model qwen3:32b          # via claude_code_server (remote, LM Studio)
+claude --model qwen3-coder-next    # via run_claude (general, Ollama)
+claude --model qwen3-coder-next    # via claude_code_local (local, Ollama)
+claude --model qwen3-coder-next    # via claude_code_server (remote, LM Studio)
 ```
 
 ## Directory Structure

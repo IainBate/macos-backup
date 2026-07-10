@@ -4,7 +4,7 @@
 # ============================================================================
 # Fetches backup from ./backup_output/ (subfolder of the current working directory),
 # installs Homebrew/Xcode/ apps, sets up Python,
-# Node.js, Ollama (Qwen 3.5 27B), Claude integration, restores
+# Node.js, Ollama (Qwen 3 Coder Next), Claude integration, restores
 # keychain and preferences, configures ~/.zshrc, applies system optimizations.
 #
 # Usage: zsh restore.sh
@@ -370,7 +370,7 @@ if [ -f "$RESTORE_DIR/settings/npm_global_packages.txt" ]; then
 fi
 
 # ============================================================================
-# 10. Ollama Setup (Qwen 3.5 27B)
+# 10. Ollama Setup (Qwen 3 Coder Next)
 # ============================================================================
 log "🤖 Setting up Ollama..."
 
@@ -383,14 +383,14 @@ if command -v ollama &>/dev/null; then
     fi
 
     # Pull the specified model
-    MODEL="qwen3:32b"
+    MODEL="qwen3-coder-next"
     log "  Pulling model: $MODEL (~19 GB, general-purpose)..."
     ollama pull "$MODEL" 2>&1 | tail -3
 
     # Configure context window (64k = 65536)
     ollama show "$MODEL" --modelfile 2>/dev/null | grep -q "num_ctx" || \
         ollama create "${MODEL}-ctx64k" -f <(cat << 'MODFILE'
-FROM qwen3:32b
+FROM qwen3-coder-next
 PARAMETER num_ctx 65536
 MODFILE
     ) 2>/dev/null || log "  ⚠ Could not set context window (may already be configured)"
@@ -435,19 +435,19 @@ for old_script in run_claude_gwen run_claude_gemma run_claude_qwen; do
     fi
 done
 
-# --- Pull qwen3:32b model (general-purpose, Q5_K_M recommended) ---
-log "  Checking qwen3:32b model..."
+# --- Pull qwen3-coder-next model (same as user's local setup) ---
+log "  Checking qwen3-coder-next model..."
 
-if ! ollama list 2>/dev/null | grep -q 'qwen3:32b'; then
-    log "  Pulling qwen3:32b (general-purpose, ~19 GB)..."
-    ollama pull qwen3:32b 2>&1 | tail -3
-    log "  ✓ qwen3:32b pulled"
+if ! ollama list 2>/dev/null | grep -q 'qwen3-coder-next'; then
+    log "  Pulling qwen3-coder-next (~19 GB)..."
+    ollama pull qwen3-coder-next 2>&1 | tail -3
+    log "  ✓ qwen3-coder-next pulled"
 else
-    log "  ✓ qwen3:32b already installed"
+    log "  ✓ qwen3-coder-next already installed"
 fi
 
-# --- Create claude_code_local: Ollama local (qwen3:32b, Q5_K_M) ---
-log "  Creating ~/bin/claude_code_local (Ollama local, qwen3:32b)..."
+# --- Create claude_code_local: Ollama local (qwen3-coder-next) ---
+log "  Creating ~/bin/claude_code_local (Ollama local, qwen3-coder-next)..."
 
 mkdir -p "$HOME/bin"
 
@@ -455,10 +455,10 @@ cat > "$HOME/bin/claude_code_local" << 'CLAUDE_LOCAL_SCRIPT'
 #!/bin/zsh
 # claude_code_local — Run Claude Code with local Ollama model
 # Optimized for M5 MacBook with 32 GB RAM
-# Model: qwen3:32b (Q5_K_M quantization, ~22 GB VRAM)
+# Model: qwen3-coder-next (same as user's local setup)
 #
 # Usage: claude_code_local "your prompt"
-#        claude_code_local --model qwen3:32b --prompt "your prompt"
+#        claude_code_local --model qwen3-coder-next --prompt "your prompt"
 #
 # Connects to Ollama on localhost:11434.
 
@@ -478,61 +478,58 @@ if ! lsof -i :11434 &>/dev/null; then
     sleep 3
 fi
 
-exec claude --model qwen3:32b "$@"
+exec claude --model qwen3-coder-next "$@"
 CLAUDE_LOCAL_SCRIPT
 
 chmod +x "$HOME/bin/claude_code_local"
 log "  ✓ ~/bin/claude_code_local created"
 
-# --- Create claude_code_server: LM Studio remote (qwen3:32b, Q5_K_M) ---
-log "  Creating ~/bin/claude_code_server (LM Studio remote, qwen3:32b)..."
+# --- Create claude_code_server: LM Studio remote (qwen3-coder-next) ---
+log "  Creating ~/bin/claude_code_server (LM Studio remote, qwen3-coder-next)..."
 
 cat > "$HOME/bin/claude_code_server" << 'CLAUDE_SERVER_SCRIPT'
 #!/bin/zsh
 # claude_code_server — Run Claude Code with remote model via LM Studio
 # Optimized for M5 MacBook with 32 GB RAM
-# Model: qwen3:32b (Q5_K_M quantization, ~22 GB VRAM)
+# Model: qwen3-coder-next (same as user's local setup)
 #
 # Usage: claude_code_server "your prompt"
-#        claude_code_server --model qwen3:32b --prompt "your prompt"
+#        claude_code_server --model qwen3-coder-next --prompt "your prompt"
 #
-# Requires: LM Studio running on localhost:1234 with qwen3:32b loaded.
+# Requires: LM Studio running on localhost:1234 with qwen3-coder-next loaded.
 
 export ANTHROPIC_BASE_URL="http://localhost:1234"
 export ANTHROPIC_AUTH_TOKEN="lmstudio"
 export CLAUDE_API_KEY="${CLAUDE_API_KEY:-}"
-export ANTHROPIC_DEFAULT_HAIKU_MODEL="qwen3:32b"
-export ANTHROPIC_DEFAULT_OPUS_MODEL="qwen3:32b"
-export ANTHROPIC_DEFAULT_SONNET_MODEL="qwen3:32b"
+export ANTHROPIC_DEFAULT_HAIKU_MODEL="qwen3-coder-next"
+export ANTHROPIC_DEFAULT_OPUS_MODEL="qwen3-coder-next"
+export ANTHROPIC_DEFAULT_SONNET_MODEL="qwen3-coder-next"
 export CLAUDE_CODE_ATTRIBUTION_HEADER=0
 
-exec claude --model qwen3:32b "$@"
+exec claude --model qwen3-coder-next "$@"
 CLAUDE_SERVER_SCRIPT
 
 chmod +x "$HOME/bin/claude_code_server"
 log "  ✓ ~/bin/claude_code_server created"
 
-# --- Create run_claude: general-purpose (qwen3:32b, Q5_K_M) ---
-log "  Creating ~/bin/run_claude (general-purpose, qwen3:32b)..."
+# --- Create run_claude: general-purpose (qwen3-coder-next) ---
+log "  Creating ~/bin/run_claude (general-purpose, qwen3-coder-next)..."
 
 cat > "$HOME/bin/run_claude" << 'RUN_CLAUDE_SCRIPT'
 #!/bin/zsh
-# run_claude — Run Claude Code with the general-purpose model (qwen3:32b)
+# run_claude — Run Claude Code with the general-purpose model (qwen3-coder-next)
 # Optimized for M5 MacBook with 32 GB RAM
 #
-# Default model: qwen3:32b (Q5_K_M quantization, ~22 GB VRAM)
+# Default model: qwen3-coder-next (same as user's local setup)
 # General-purpose model — better for reasoning, writing, analysis, and
 # everyday tasks. Use claude_code_local for coding-specific tasks.
 #
 # M5 / 32 GB optimized parameters:
-#   - Q5_K_M quantization: ~22 GB VRAM (leaves ~10 GB for OS)
-#   - 131k context window
-#   - Medium thinking mode (qwen3 supports built-in reasoning)
 #   - Flash attention enabled for Apple Silicon
 #   - Single model loaded for memory efficiency
 #
 # Usage: run_claude "your prompt"
-#        run_claude --model qwen3:32b --prompt "your prompt"
+#        run_claude --model qwen3-coder-next --prompt "your prompt"
 #
 # Connects to Ollama on localhost:11434.
 
@@ -552,7 +549,7 @@ if ! lsof -i :11434 &>/dev/null; then
     sleep 3
 fi
 
-exec claude --model qwen3:32b "$@"
+exec claude --model qwen3-coder-next "$@"
 RUN_CLAUDE_SCRIPT
 
 chmod +x "$HOME/bin/run_claude"
@@ -649,7 +646,7 @@ if brew list --cask lm-studio &>/dev/null; then
     log "  ✓ LM Studio installed (open with: open -a 'LM Studio')"
     log "  Manual steps:"
     log "    1. Open LM Studio"
-    log "    2. Search for and download: qwen3:32b, start Local Server"
+    log "    2. Search for and download: qwen3-coder-next, start Local Server"
     log "    3. Go to the 'Local Server' tab (server icon on the left)"
     log "    4. Select your downloaded model"
     log "    5. Click 'Start Server' — API available at http://localhost:1234"
@@ -776,7 +773,7 @@ eval "$(pyenv init -)"
 # Aliases
 append_if_missing "backup_and_restore aliases" '
 # AI model aliases
-alias ask="ollama run qwen3:32b"
+alias ask="ollama run qwen3-coder-next"
 alias claude="$HOME/bin/run_claude"
 alias claude-local="$HOME/bin/claude_code_local"
 alias claude-server="$HOME/bin/claude_code_server"
@@ -851,7 +848,7 @@ log "  8. FileVault — if not enabled above, run: sudo fdesetup enable -user $U
 log "  9. System Settings > Battery > Power — set to 'High Performance'"
 log "  10. System Settings > Desktop & Screen Saver — customize wallpaper"
 log "  11. System Settings > Privacy > Location Services — verify app permissions"
-log "  12. LM Studio — open app, download qwen3:32b, start Local Server"
+log "  12. LM Studio — open app, download qwen3-coder-next, start Local Server"
 log "  13. MLX models — download via: python3 -c \"from huggingface_hub import snapshot_download; snapshot_download('mlx-community/qwen2.5-coder-32b-instruct-4bit', local_dir='\$HOME/.mlx/models/mlx-community/qwen2.5-coder-32b-4bit')\""
 log ""
 log "=============================================="
