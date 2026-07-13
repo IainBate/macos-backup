@@ -306,6 +306,23 @@ else
 fi
 
 # ============================================================================
+# 7.6 Clone llm-scripts repository (for Claude/Ollama scripts)
+# ============================================================================
+log "🔄 Cloning llm-scripts repository..."
+
+if [ ! -d "$HOME/llm-scripts" ]; then
+    log "  Cloning llm-scripts to $HOME/llm-scripts..."
+    if git clone https://github.com/IainBate/llm-scripts.git "$HOME/llm-scripts" 2>&1 | tail -1; then
+        chmod +x "$HOME/llm-scripts"/*.sh 2>/dev/null || true
+        log "  ✓ llm-scripts cloned and made executable"
+    else
+        log "  ⚠ Failed to clone llm-scripts — run manually: git clone https://github.com/IainBate/llm-scripts.git ~/llm-scripts"
+    fi
+else
+    log "  ✓ llm-scripts already exists at $HOME/llm-scripts"
+fi
+
+# ============================================================================
 # 8. Python via pyenv
 # ============================================================================
 log "🐍 Setting up Python via pyenv..."
@@ -720,7 +737,7 @@ append_if_missing() {
 
 # PATH
 append_if_missing "backup_and_restore PATH" '
-export PATH="$HOME/bin:/opt/homebrew/bin:$PATH"
+export PATH="$HOME/bin:/opt/homebrew/bin:$HOME/llm-scripts:$PATH"
 '
 
 # Claude API Key (env var override supported)
@@ -772,11 +789,11 @@ eval "$(pyenv init -)"
 
 # Aliases
 append_if_missing "backup_and_restore aliases" '
-# AI model aliases
+# AI model aliases (using llm-scripts)
 alias ask="ollama run qwen3-coder-next"
-alias claude="$HOME/bin/run_claude"
-alias claude-local="$HOME/bin/claude_code_local"
-alias claude-server="$HOME/bin/claude_code_server"
+alias claude="claude_code_ollama"
+alias claude-local="claude_code_local"
+alias claude-server="claude_code_server"
 
 # Open WebUI
 alias webui-open="open http://localhost:8080"
