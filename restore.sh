@@ -529,48 +529,14 @@ CLAUDE_SERVER_SCRIPT
 chmod +x "$HOME/bin/claude_code_server"
 log "  ✓ ~/bin/claude_code_server created"
 
-# --- Create run_claude: general-purpose (qwen3-coder-next) ---
-log "  Creating ~/bin/run_claude (general-purpose, qwen3-coder-next)..."
-
-cat > "$HOME/bin/run_claude" << 'RUN_CLAUDE_SCRIPT'
-#!/bin/zsh
-# run_claude — Run Claude Code with the general-purpose model (qwen3-coder-next)
-# Optimized for M5 MacBook with 32 GB RAM
-#
-# Default model: qwen3-coder-next (same as user's local setup)
-# General-purpose model — better for reasoning, writing, analysis, and
-# everyday tasks. Use claude_code_local for coding-specific tasks.
-#
-# M5 / 32 GB optimized parameters:
-#   - Flash attention enabled for Apple Silicon
-#   - Single model loaded for memory efficiency
-#
-# Usage: run_claude "your prompt"
-#        run_claude --model qwen3-coder-next --prompt "your prompt"
-#
-# Connects to Ollama on localhost:11434.
-
-export ANTHROPIC_BASE_URL="${ANTHROPIC_BASE_URL:-http://localhost:11434}"
-export ANTHROPIC_AUTH_TOKEN="${ANTHROPIC_AUTH_TOKEN:-ollama}"
-export CLAUDE_API_KEY="${CLAUDE_API_KEY:-}"
-
-# M5 / 32 GB optimized parameters
-export OLLAMA_NUM_PARALLEL=1
-export OLLAMA_MAX_LOADED_MODELS=1
-export OLLAMA_FLASH_ATTENTION=1
-
-# Start Ollama if not running
-if ! lsof -i :11434 &>/dev/null; then
-    echo "Starting Ollama server..."
-    ollama serve &
-    sleep 3
-fi
-
-exec claude --model qwen3-coder-next "$@"
-RUN_CLAUDE_SCRIPT
-
-chmod +x "$HOME/bin/run_claude"
-log "  ✓ ~/bin/run_claude created"
+# --- Move run_claude to old_routines (if it exists) ---
+for old_script in run_claude; do
+    if [ -f "$HOME/bin/$old_script" ]; then
+        cp -p "$HOME/bin/$old_script" "$OLD_DIR/$old_script"
+        rm -f "$HOME/bin/$old_script"
+        log "  ✓ Moved $old_script → old_routines/"
+    fi
+done
 
 # --- Commit the script moves to the bin repo ---
 log "  Committing script moves to git..."
@@ -579,7 +545,7 @@ if [ -d "$HOME/bin/.git" ]; then
     cd "$HOME/bin"
     git add -A
     git diff --cached --quiet || \
-        git commit -m "Rename run_claude_* scripts: claude_code_local, claude_code_server, run_claude" 2>/dev/null && \
+        git commit -m "Restore: archive old LLM scripts to old_routines" 2>/dev/null && \
         log "  ✓ Committed script moves to bin repo" || \
         log "  ⚠ No changes to commit in bin repo"
     cd - > /dev/null
@@ -880,9 +846,8 @@ log "Next steps:"
 log "  1. Run the manual steps listed above"
 log "  2. Verify your apps: $(ls /Applications/ | wc -l | tr -d ' ') apps installed"
 log "  3. Check Ollama: ollama list"
-log "  4. Test Claude (general): ~/bin/run_claude 'hello'"
-log "  5. Test Claude (local): ~/bin/claude_code_local 'hello'"
-log "  6. Test Claude (server): ~/bin/claude_code_server 'hello'"
+log "  4. Test Claude (local): ~/bin/claude_code_local 'hello'"
+log "  5. Test Claude (server): ~/bin/claude_code_server 'hello'"
 log "  6. Open WebUI: webui-open (http://localhost:8080)"
 log "  7. MLX models: mlx-info"
 log "  8. Verify settings: pmset -g custom"
